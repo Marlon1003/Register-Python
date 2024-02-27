@@ -1,0 +1,137 @@
+import re
+from email.message import EmailMessage
+import smtplib
+import ssl
+import pyautogui
+import webbrowser
+import time
+
+def validar_nombre(nombre):
+    patron_nombre = r'^[a-zA-ZáéíóúÁÉÍÓÚ\s]+$'
+    if re.match(patron_nombre, nombre):
+        return True
+    else:
+        print("Error: El nombre solo puede contener letras y espacios.")
+        return False
+
+def validar_apellido(apellido):
+    patron_apellido = r'^[a-zA-ZáéíóúÁÉÍÓÚ\s]+$'
+    if re.match(patron_apellido, apellido):
+        return True
+    else:
+        print("Error: El apellido solo puede contener letras y espacios.")
+        return False
+
+def validar_fecha_nacimiento(fecha):
+    patron_fecha = r'^\d{2}/\d{2}/\d{4}$'
+    if re.match(patron_fecha, fecha):
+        return True
+    else:
+        print("Error: El formato de la fecha debe ser DD/MM/AAAA.")
+        return False
+
+def validar_correo(correo):
+    patron_correo = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    if re.match(patron_correo, correo):
+        return True
+    else:
+        print("Error: El formato del correo electrónico es incorrecto.")
+        return False
+
+def validar_telefono(telefono):
+    patron_telefono = r'^\d{11}$'
+    if re.match(patron_telefono, telefono):
+        return True
+    else:
+        print("Error: El número telefónico debe contener 10 dígitos numéricos.")
+        return False
+
+def enviar_email(email_recibir, nombre):
+    email_sender = 'marlondaza2003@gmail.com' 
+    email_password = 'nzolasaltmddgplo'
+    email_receiver = email_recibir 
+
+    subject = "¡Registro exitoso!" 
+    body = "¡Hola " + nombre + "! Tu registro ha sido exitoso." 
+
+    em = EmailMessage()
+    em['From'] = email_sender
+    em['To'] = email_receiver
+    em['Subject'] = subject
+    em.set_content(body)
+
+    context = ssl.create_default_context() 
+
+    with smtplib.SMTP_SSL('smtp.gmail.com',465, context=context) as smtp:
+        smtp.login(email_sender, email_password) 
+        smtp.sendmail(email_sender, email_receiver, em.as_string()) 
+
+def enviar_mensaje_whatsapp(numero):
+    mensaje = "¡Registro exitoso!"
+
+    codigo_pais = "+58"
+
+    numero_con_codigo_pais = codigo_pais + numero
+
+    webbrowser.open("https://web.whatsapp.com/send?phone=" + numero_con_codigo_pais)
+    time.sleep(5)  
+
+    pyautogui.typewrite(mensaje)
+    pyautogui.press('enter')
+
+def registrar_persona():
+    print("Por favor ingresa la siguiente información:")
+    nombre = input("Nombre: ")
+    if not validar_nombre(nombre):
+        return
+
+    apellido = input("Apellido: ")
+    if not validar_apellido(apellido):
+        return
+
+    fecha_nacimiento = input("Fecha de nacimiento (DD/MM/AAAA): ")
+    if not validar_fecha_nacimiento(fecha_nacimiento):
+        return
+
+    pais = input("País: ")
+    correo = input("Correo electrónico: ")
+    if not validar_correo(correo):
+        return
+
+    telefono = input("Número telefónico: ")
+    if not validar_telefono(telefono):
+        return
+
+    with open("registro_personas.txt", "a") as archivo:
+        archivo.write(f"Nombre: {nombre}\n")
+        archivo.write(f"Apellido: {apellido}\n")
+        archivo.write(f"Fecha de nacimiento: {fecha_nacimiento}\n")
+        archivo.write(f"País: {pais}\n")
+        archivo.write(f"Correo electrónico: {correo}\n")
+        archivo.write(f"Número telefónico: {telefono}\n")
+        archivo.write("-" * 30 + "\n")
+
+    print("¡Registro exitoso!\n")
+
+    enviar_email(correo, nombre)
+
+    enviar_mensaje_whatsapp(telefono)
+
+def main():
+    while True:
+        print("Bienvenido al sistema de registro de personas")
+        print("1. Registrar nueva persona")
+        print("2. Salir")
+
+        opcion = input("Seleccione una opción: ")
+
+        if opcion == "1":
+            registrar_persona()
+        elif opcion == "2":
+            print("Gracias por usar el sistema. ¡Hasta luego!")
+            break
+        else:
+            print("Opción no válida. Por favor selecciona una opción válida.\n")
+
+if __name__ == "__main__":
+    main()
